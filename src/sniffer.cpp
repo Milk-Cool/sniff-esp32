@@ -22,8 +22,12 @@ static void cb(void* buf, wifi_promiscuous_pkt_type_t type) {
     sniff.rssi = packet->rx_ctrl.rssi;
 
     search_for = sniff;
-    if(std::find_if(ret.begin(), ret.end(), exists) == ret.end())
-        ret.push_back(sniff);
+    if(std::find_if(ret.begin(), ret.end(), exists) != ret.end()) return;
+
+    ret.push_back(sniff);
+    Serial.printf("Found %02x:%02x:%02x:%02x:%02x:%02x\n",
+        sniff.mac[0], sniff.mac[1], sniff.mac[2],
+        sniff.mac[3], sniff.mac[4], sniff.mac[5]);
 }
 
 std::vector<Sniff> sniffer() {
@@ -35,7 +39,7 @@ std::vector<Sniff> sniffer() {
     esp_wifi_set_promiscuous_rx_cb(cb);
 
     for(int i = 0; i < sizeof(channels) / sizeof(channels[0]); i++) {
-        Serial.printf("Channel %d\n", i);
+        Serial.printf("Channel %d\n", channels[i]);
         esp_wifi_set_channel(channels[i], WIFI_SECOND_CHAN_NONE);
         delay(CHANNEL_DELAY);
     }

@@ -1,6 +1,17 @@
 #include "api.h"
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include "esp_wifi.h"
+
+String get_mac() {
+    uint8_t mac[6];
+    esp_wifi_get_mac(WIFI_IF_STA, mac);
+    char mac_str[18];
+    sprintf(mac_str, "%02x:%02x:%02x:%02x:%02x:%02x",
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    mac_str[17] = '\0';
+    return String(mac_str);
+}
 
 void api_send_sniff(String base, std::vector<Sniff> sniffs) {
     if(base.charAt(base.length() - 1) == '/')
@@ -12,18 +23,20 @@ void api_send_sniff(String base, std::vector<Sniff> sniffs) {
     HTTPClient http;
     http.begin(base);
 
-    JsonArray arr;
+    JsonDocument data;
     for(Sniff sn : sniffs) {
         JsonDocument doc;
         JsonArray mac;
         for(int i = 0; i < 6; i++)
-            mac.add(sn.mac[i]);
-        doc["mac"] = mac;
+            doc["mac"].add(sn.mac[i]);
         doc["rssi"] = sn.rssi;
-        arr.add(doc);
+        data["sniffs"].add(doc);
     }
+
+    data["mac"] = get_mac();
+
     String out;
-    serializeJson(arr, out);
+    serializeJson(data, out);
 
     http.addHeader("Content-Type", "application/json");
     int code = http.POST(out);
