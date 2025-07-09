@@ -14,7 +14,7 @@ void setup() {
 
     WiFi.mode(WIFI_STA);
 
-    if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("api")) {
+    if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("api") || !prefs.isKey("key")) {
         Serial.println("Waiting 10s to allow for config changes...");
         delay(10000); // Serial data is cached anyawy
         return;
