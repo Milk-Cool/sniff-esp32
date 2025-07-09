@@ -3,4 +3,4 @@
 #include <vector>
 #include "sniff.h"
 
-void api_send_sniff(String base, std::vector<Sniff> sniffs);
+void api_send_sniff(String base, String key, std::vector<Sniff> sniffs);

@@ -34,6 +34,8 @@ void loop() {
                 ? "ssid"
                 : inp[0] == 'p'
                 ? "pass"
+                : inp[0] == 'k'
+                ? "key"
                 : "api",
                 inp.substring(1));
             inp = "";
@@ -43,8 +45,8 @@ void loop() {
     WiFi.disconnect();
     auto sniffed = sniffer();
 
-    if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("api")) {
-        Serial.println("Skipping uploading because not all keys were found!");
+    if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("key") || !prefs.isKey("api")) {
+        Serial.println("Skipping uploading because not all preferences were found!");
         return;
     }
     WiFi.begin(prefs.getString("ssid"), prefs.getString("pass"));
@@ -59,5 +61,5 @@ void loop() {
         Serial.println("Couldn't connect!");
         return;
     }
-    api_send_sniff(prefs.getString("api"), sniffed);
+    api_send_sniff(prefs.getString("api"), prefs.getString("key"), sniffed);
 }

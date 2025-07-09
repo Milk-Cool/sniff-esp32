@@ -17,7 +17,7 @@ String get_mac() {
     return get_mac_str(mac);
 }
 
-void api_send_sniff(String base, std::vector<Sniff> sniffs) {
+void api_send_sniff(String base, String key, std::vector<Sniff> sniffs) {
     if(base.charAt(base.length() - 1) == '/')
         base = base.substring(0, base.length() - 1);
     base += "/sniff";
