@@ -37,6 +37,7 @@ void api_send_sniff(String base, String key, std::vector<Sniff> sniffs) {
     }
 
     data["mac"] = get_mac();
+    data["key"] = key;
 
     String out;
     serializeJson(data, out);
