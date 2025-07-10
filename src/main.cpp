@@ -7,24 +7,8 @@
 
 Preferences prefs;
 
-void setup() {
-    prefs.begin("sniff");
-    Serial.begin(115200);
-    Serial.println("Starting up");
-
-    WiFi.mode(WIFI_STA);
-
-    if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("api") || !prefs.isKey("key")) {
-        Serial.println("Waiting 10s to allow for config changes...");
-        delay(10000); // Serial data is cached anyawy
-        return;
-    }
-}
-
 String inp = "";
-void loop() {
-    delay(1);
-
+void read_input() {
     while(Serial.available()) {
         char c = Serial.read();
         if(c == '\r') continue;
@@ -35,17 +19,44 @@ void loop() {
                 : inp[0] == 'p'
                 ? "pass"
                 : inp[0] == 'k'
-                ? "key"
+                ? "apikey"
                 : "api",
                 inp.substring(1));
             inp = "";
         } else inp += c;
     }
+}
+void setup() {
+    prefs.begin("sniff");
+    Serial.begin(115200);
+    Serial.println("Starting up");
+
+    Serial.println(prefs.getString("ssid"));
+    Serial.println(prefs.getString("pass"));
+    Serial.println(prefs.getString("api"));
+    Serial.println(prefs.getString("apikey"));
+
+    WiFi.mode(WIFI_STA);
+
+    if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("api") || !prefs.isKey("apikey")) {
+        Serial.println("Waiting 10s to allow for config changes...");
+        for(int i = 0; i < 10; i++) {
+            read_input();
+            delay(1000);
+        }
+        return;
+    }
+}
+
+void loop() {
+    delay(1);
+
+    read_input();
 
     WiFi.disconnect();
     auto sniffed = sniffer();
 
-    if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("key") || !prefs.isKey("api")) {
+    if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("apikey") || !prefs.isKey("api")) {
         Serial.println("Skipping uploading because not all preferences were found!");
         return;
     }
@@ -61,5 +72,5 @@ void loop() {
         Serial.println("Couldn't connect!");
         return;
     }
-    api_send_sniff(prefs.getString("api"), prefs.getString("key"), sniffed);
+    api_send_sniff(prefs.getString("api"), prefs.getString("apikey"), sniffed);
 }
