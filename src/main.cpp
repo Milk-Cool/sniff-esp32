@@ -31,11 +31,6 @@ void setup() {
     Serial.begin(115200);
     Serial.println("Starting up");
 
-    Serial.println(prefs.getString("ssid"));
-    Serial.println(prefs.getString("pass"));
-    Serial.println(prefs.getString("api"));
-    Serial.println(prefs.getString("apikey"));
-
     WiFi.mode(WIFI_STA);
 
     if(!prefs.isKey("ssid") || !prefs.isKey("pass") || !prefs.isKey("api") || !prefs.isKey("apikey")) {
