@@ -33,6 +33,7 @@ void api_send_sniff(String base, String key, std::vector<Sniff> sniffs) {
         JsonArray mac;
         doc["mac"] = get_mac_str(sn.mac);
         doc["rssi"] = sn.rssi;
+        doc["ssid"] = sn.ssid;
         data["sniffs"].add(doc);
     }
 

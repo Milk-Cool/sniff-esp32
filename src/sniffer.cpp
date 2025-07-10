@@ -11,7 +11,7 @@ static const wifi_promiscuous_filter_t filter = {
 
 static Sniff search_for;
 static bool exists(Sniff sniff) {
-    return memcmp(sniff.mac, search_for.mac, 6) == 0; // do not check rssi
+    return memcmp(sniff.mac, search_for.mac, 6) == 0 && search_for.ssid == sniff.ssid; // do not check rssi
 }
 
 static void cb(void* buf, wifi_promiscuous_pkt_type_t type) {
@@ -21,6 +21,24 @@ static void cb(void* buf, wifi_promiscuous_pkt_type_t type) {
     memcpy(sniff.mac, packet->payload + 10, 6);
     sniff.rssi = packet->rx_ctrl.rssi;
 
+    if((packet->payload[0] & 0xf0) == 0x40) {
+        int pos = 24;
+        while(pos < packet->rx_ctrl.sig_len) {
+            uint8_t tag = packet->payload[pos];
+            uint8_t len = packet->payload[pos + 1];
+            if(tag == 0x00) {
+                char ssid[33];
+                memset(ssid, 0, 33);
+                memcpy(ssid, &packet->payload[pos + 2], len > 32 ? 32 : len);
+                for(int j = 0; j < 32 && ssid[j] != 0; j++)
+                    if(ssid[j] >= 0x20 && ssid[j] != 0x7f) // Check printable
+                        sniff.ssid += ssid[j];
+                break;
+            }
+            pos += len + 2;
+        }
+    }
+
     search_for = sniff;
     if(std::find_if(ret.begin(), ret.end(), exists) != ret.end()) return;
 
@@ -28,6 +46,8 @@ static void cb(void* buf, wifi_promiscuous_pkt_type_t type) {
     Serial.printf("Found %02x:%02x:%02x:%02x:%02x:%02x\n",
         sniff.mac[0], sniff.mac[1], sniff.mac[2],
         sniff.mac[3], sniff.mac[4], sniff.mac[5]);
+    if(sniff.ssid != "0")
+        Serial.printf("with SSID %s\n", sniff.ssid.c_str());
 }
 
 std::vector<Sniff> sniffer() {
